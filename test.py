@@ -1,5 +1,5 @@
 from agentique.agents.chunk_agent import ChunkAgent
-from agentique.agents.lieutenants_agent import LieutenantsAgent
+from agentique.agents.lieutenant_agent import LieutenantAgent
 from agentique.agents.SOA_agent import SOA_agent
 
 import os
@@ -216,7 +216,7 @@ if __name__ == "__main__":
     for chunk in chunks:
         list_of_chunk_agents.append(ChunkAgent(chunk, le_client, model=le_model))
 
-    lieutenants_agent = LieutenantsAgent(list_of_chunk_agents, 0, len(list_of_chunk_agents)-1, le_client, model=le_model)
+    lieutenant_agent = LieutenantAgent(list_of_chunk_agents, 0, len(list_of_chunk_agents)-1, le_client, model=le_model)
     soa_agent = SOA_agent(le_client, model=le_model)
     user_request = "Résume le texte"
     plan_of_action = asyncio.run(soa_agent.process_message(user_request))
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     print("--------------------------------")
     print("--------------------------------")
 
-    response = asyncio.run(lieutenants_agent.execute_plan_of_action(user_request, plan_of_action))
+    response = asyncio.run(lieutenant_agent.process_message(user_request, plan_of_action))
     print(response)
 
 
