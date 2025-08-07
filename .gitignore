@@ -2,3 +2,8 @@
 .venv
 __pycache__
 *.pyc
+
+logs.txt
+logs2.txt
+
+textes/
