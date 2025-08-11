@@ -1,4 +1,4 @@
-from agentique.ModelContextProtocol import ModelContextProtcol
+from agentique.ModelContextProtocol import ModelContextProtocol
 
 
 import os
@@ -12,7 +12,7 @@ load_dotenv()
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    filename='logs.txt',
+    filename='logs/logs3.txt',
     filemode='a'  # 'w' pour écraser, 'a' pour ajouter
 )
 
@@ -26,12 +26,12 @@ if __name__ == "__main__":
     
     le_model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
 
-    fichier_texte = "textes/Le comte de Monte Cristo.txt"
+    fichier_texte = "textes/metier.txt"
 
     with open(fichier_texte, "r", encoding="utf-8") as f:
         texte = f.read()
         
-        mon_mcp = ModelContextProtcol(texte, le_client, le_model)
+        mon_mcp = ModelContextProtocol.init_from_texte(texte, le_client, le_model)
            
         user_request = """Résume ce document en exactement un paragraphe de 4-5 phrases maximum (150 mots max). 
     Le résumé doit être narratif et fluide, pas une liste d'événements. 

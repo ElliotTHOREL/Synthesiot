@@ -8,16 +8,33 @@ from agentique.historique_message import Message, ConversationHistory
 import openai
 
 class ChunkAgent(BaseAgent):
+
+    #2 types d'initialisation :
+    #   1. from scratch : code ci-dessous (init_from_texte + async_init)
+    #   2. from bdd : code dans le fichier app/services/database/read.py (get_mcp_from_bdd)
+
     def __init__(self, context:str, is_premier_chunk:bool, texte_du_chunk:str, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
         super().__init__(openai_client, model)
-        self.historic = ConversationHistory()
         self.context = context
-        self.texte_du_chunk = texte_du_chunk
         self.is_premier_chunk = is_premier_chunk
-        self.system_prompt =  self.get_system_prompt()
+        self.texte_du_chunk = texte_du_chunk
+        self.historic = None #selon l'initialisation
+        self.system_prompt =  None #selon l'initialisation
+        self.summary = None #selon l'initialisation
+
+    #Initialisation from scratch
+    @classmethod
+    def init_from_texte(cls, context:str, is_premier_chunk:bool, texte_du_chunk:str, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
+        chunk_agent = cls(context, is_premier_chunk, texte_du_chunk, openai_client, model)
+        chunk_agent.historic = ConversationHistory()
+        chunk_agent.system_prompt =  chunk_agent.get_system_prompt()
+        return chunk_agent
 
     async def async_init(self):
         self.summary = await self.get_summary()
+
+
+
 
     def get_system_prompt(self):
         if self.is_premier_chunk:

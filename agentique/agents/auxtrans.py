@@ -17,7 +17,7 @@ class AuxTransAgent(BaseAgent):
         
         self.synthe_agent = SyntheAgent(openai_client, model)
 
-
+    
     def get_system_prompt(self):
         if self.system_prompt is not None:
             return self.system_prompt

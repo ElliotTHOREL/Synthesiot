@@ -6,23 +6,32 @@ import openai
 import asyncio
 import time
 import logging
+from typing import Optional
 
 
 
 
-class ModelContextProtcol:
-    def __init__(self, texte : str,  openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
+class ModelContextProtocol:
+    def __init__(self, texte : str,  openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo", indice_fichier: Optional[int] = None):
         self.texte = texte
         self.client = openai_client
         self.model = model
-        self.liste_chunk_agents = self._init_chunk_agents()
-        self.liste_lieutenant_agents = self._init_lieutenant_agents()
 
-        self.orchestrateur_agent = self._get_orchestrateur_agent()
-        asyncio.run(self.orchestrateur_agent.async_init()) #async_init récursif de tous les agents
+        self.indice_bdd = None #Correspond à mcp_id dans la base de données
+        self.indice_fichier = indice_fichier #Correspond à id_fichier dans la base de données
 
-        print(self.orchestrateur_agent.summary)
     
+    @classmethod
+    def init_from_texte(cls, texte: str, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
+        mcp = cls(texte, openai_client, model)
+        mcp.liste_chunk_agents = mcp._init_chunk_agents()
+        mcp.liste_lieutenant_agents = mcp._init_lieutenant_agents()
+        mcp.orchestrateur_agent = mcp._get_orchestrateur_agent()
+        asyncio.run(mcp.orchestrateur_agent.async_init())
+        print(mcp.orchestrateur_agent.summary)
+        return mcp
+
+
 
     def _get_chunks(self, chunk_size: int = 3000, overlap: int = 150) -> list[str]:
         mots = self.texte.split()
@@ -42,7 +51,7 @@ class ModelContextProtcol:
         is_premier_chunk = True
         context = ""
         for chunk in chunks:
-            new_chunk_agent = ChunkAgent(context, is_premier_chunk, chunk, openai_client=self.client, model=self.model)
+            new_chunk_agent = ChunkAgent.init_from_texte(context, is_premier_chunk, chunk, openai_client=self.client, model=self.model)
             list_of_chunk_agents.append(new_chunk_agent)
 
             is_premier_chunk = False

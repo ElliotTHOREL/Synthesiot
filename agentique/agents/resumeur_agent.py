@@ -14,8 +14,8 @@ class ResumeurAgent(BaseAgent):
 
     async def process_message(self, liste_resumes: list[str]) -> str:
         resumes ="""Voici les résumés des différentes parties du document : \n\n\n"""
-        zip = zip(range(self.id_first_sub_agent, self.id_last_sub_agent + 1), liste_resumes)
-        for id_agent, resume in zip:
+        zipped_data = zip(range(self.id_first_sub_agent, self.id_last_sub_agent + 1), liste_resumes)
+        for id_agent, resume in zipped_data:
             resumes += f"Résumé de la partie {id_agent} : \n {resume}\n\n"
         
 

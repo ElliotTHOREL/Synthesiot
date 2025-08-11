@@ -3,7 +3,6 @@
 __pycache__
 *.pyc
 
-logs.txt
-logs2.txt
+logs/
 
 textes/
