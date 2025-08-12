@@ -3,7 +3,6 @@ from agentique.agents.lieutenant_agent import LieutenantAgent
 from agentique.agents.SOA_agent import SOA_agent
 
 import openai
-import asyncio
 import time
 import logging
 from typing import Optional
@@ -22,12 +21,12 @@ class ModelContextProtocol:
 
     
     @classmethod
-    def init_from_texte(cls, texte: str, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
+    async def init_from_texte(cls, texte: str, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
         mcp = cls(texte, openai_client, model)
-        mcp.liste_chunk_agents = mcp._init_chunk_agents()
+        mcp.liste_chunk_agents = await mcp._init_chunk_agents()
         mcp.liste_lieutenant_agents = mcp._init_lieutenant_agents()
         mcp.orchestrateur_agent = mcp._get_orchestrateur_agent()
-        asyncio.run(mcp.orchestrateur_agent.async_init())
+        await mcp.orchestrateur_agent.async_init()
         print(mcp.orchestrateur_agent.summary)
         return mcp
 
@@ -44,7 +43,7 @@ class ModelContextProtocol:
         return chunks
 
 
-    def _init_chunk_agents(self):
+    async def _init_chunk_agents(self):
         time_start = time.time()
         chunks = self._get_chunks()
         list_of_chunk_agents=[]
@@ -55,7 +54,7 @@ class ModelContextProtocol:
             list_of_chunk_agents.append(new_chunk_agent)
 
             is_premier_chunk = False
-            context = asyncio.run(new_chunk_agent.generate_next_context())
+            context = await new_chunk_agent.generate_next_context()
         time_end = time.time()
         logging.info(f"Temps d'initialisation des agents de chunk : {time_end - time_start} secondes")
         logging.info(f"Nombre de chunks : {len(chunks)}")
@@ -81,7 +80,7 @@ class ModelContextProtocol:
             return orchestrateur_agent
 
 
-    def process_message(self, user_request: str):
-        response = asyncio.run(self.orchestrateur_agent.process_message(user_request))
+    async def process_message(self, user_request: str):
+        response = await self.orchestrateur_agent.process_message(user_request)
         return response
 

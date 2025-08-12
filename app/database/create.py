@@ -1,4 +1,4 @@
-from connection import get_db_cursor
+from app.connection import get_db_cursor
 
 def init_bdd():
     with get_db_cursor() as cursor:

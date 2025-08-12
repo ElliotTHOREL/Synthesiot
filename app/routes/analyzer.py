@@ -26,16 +26,16 @@ class TextRequest(BaseModel):
 
 @router.post("/quickly_summarize_file")
 async def quickly_summarize_file_endpoint(id_fichier: int):
-    return quickly_summarize_file(id_fichier)
+    return await quickly_summarize_file(id_fichier)
 
 @router.post("/ask_file")
 async def ask_file_endpoint(req: FileAskRequest):
-    return ask_file(req.id_fichier, req.user_request)
+    return await ask_file(req.id_fichier, req.user_request)
 
 @router.post("/quickly_summarize_text")
 async def quickly_summarize_text_endpoint(req: TextRequest):
-    return quickly_summarize_text(req.texte)
+    return await quickly_summarize_text(req.texte)
 
 @router.post("/ask_text")
 async def ask_text_endpoint(req: TextAskRequest):
-    return ask_text(req.texte, req.user_request)
+    return await ask_text(req.texte, req.user_request)

@@ -3,7 +3,6 @@ from agentique.ModelContextProtocol import ModelContextProtocol
 
 import os
 import openai
-import asyncio
 from dotenv import load_dotenv 
 import logging
 

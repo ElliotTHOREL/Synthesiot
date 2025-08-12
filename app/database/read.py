@@ -1,4 +1,4 @@
-from connection import get_db_cursor
+from app.connection import get_db_cursor
 from agentique.ModelContextProtocol import ModelContextProtocol
 from agentique.historique_message import ConversationHistory, Message
 from agentique.agents.lieutenant_agent import LieutenantAgent
@@ -8,7 +8,7 @@ from agentique.agents.chunk_agent import ChunkAgent
 import logging
 import openai
 
-def retrieve_mcp_from_bdd(id_fichier: int, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
+async def retrieve_mcp_from_bdd(id_fichier: int, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
     """
     Récupère un MCP à partir de l'id du fichier ou en crée un nouveau si aucun n'existe
     """
@@ -22,7 +22,7 @@ def retrieve_mcp_from_bdd(id_fichier: int, openai_client: openai.AsyncOpenAI, mo
             logging.info(f"Aucun MCP trouvé pour le fichier {id_fichier} -> Création d'un nouveau MCP")
             
             texte = _get_text_from_bdd(id_fichier)
-            mon_mcp = ModelContextProtocol.init_from_texte(texte, openai_client, model)
+            mon_mcp = await ModelContextProtocol.init_from_texte(texte, openai_client, model)
             return mon_mcp
 
         elif nb_mcp == 1:
@@ -33,7 +33,7 @@ def retrieve_mcp_from_bdd(id_fichier: int, openai_client: openai.AsyncOpenAI, mo
             id_mcp = cursor.fetchone()[0]
 
             logging.info(f"1 MCP trouvé pour le fichier {id_fichier} -> Récupération du MCP (id = {id_mcp})")
-            return _get_mcp_from_bdd(id_mcp, openai_client, model)
+            return  _get_mcp_from_bdd(id_mcp, openai_client, model)
         
         else:
             cursor.execute("""SELECT MAX(id) 
@@ -43,7 +43,7 @@ def retrieve_mcp_from_bdd(id_fichier: int, openai_client: openai.AsyncOpenAI, mo
             id_mcp = cursor.fetchone()[0]
 
             logging.info(f"{nb_mcp} MCP trouvés pour le fichier {id_fichier} -> Récupération du MCP le plus récent (id = {id_mcp})")
-            return _get_mcp_from_bdd(id_mcp, openai_client, model)
+            return  _get_mcp_from_bdd(id_mcp, openai_client, model)
 
 def _get_text_from_bdd(id_fichier: int):
     with get_db_cursor() as cursor:

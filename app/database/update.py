@@ -1,4 +1,4 @@
-from connection import get_db_cursor
+from app.connection import get_db_cursor
 from agentique.ModelContextProtocol import ModelContextProtocol
 
 from datetime import datetime
