@@ -2,13 +2,14 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from typing import Optional
 
 from app.database.update import add_file_in_bdd
+from app.database.delete import delete_file_in_bdd, reset_bdd
 from app.services.files import get_files
 
 router = APIRouter()
 
 @router.get("/get_files/")
 async def get_files_endpoint():
-    return await get_files()
+    return get_files()
 
 
 @router.post("/import_file/")
@@ -29,8 +30,14 @@ async def import_file_endpoint(file: UploadFile = File(...), name: Optional[str]
         raise HTTPException(status_code=400, detail=f"Erreur de décodage utf-8: {e}")
 
     # Ici tu appelles ta fonction métier qui enregistre le texte
-    await add_file_in_bdd(filename, texte)
+    add_file_in_bdd(filename, texte)
 
     return {"status": "success", "filename": filename}
 
+@router.delete("/delete_file/")
+async def delete_file_endpoint(id_file: int):
+    return delete_file_in_bdd(id_file)
 
+@router.delete("/reset_bdd/")
+async def reset_bdd_endpoint():
+    return reset_bdd()

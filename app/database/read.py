@@ -7,6 +7,35 @@ from agentique.agents.chunk_agent import ChunkAgent
 
 import logging
 import openai
+import re
+import time
+import hashlib
+
+def normalize_text(text: str) -> str:
+    """
+    Normalise le texte en supprimant les espaces multiples et en mettant en minuscules.
+    """
+    text = text.strip().lower()
+    text = re.sub(r'\s+', ' ', text)
+    return text
+
+def get_hash_normalise(texte: str) -> str:
+    """
+    Calcule le hash normalisé du texte.
+    """
+    return hashlib.sha256(normalize_text(texte).encode()).hexdigest()
+
+def get_fichier_from_texte(texte: str):
+    t=time.time()
+    with get_db_cursor() as cursor:
+        cursor.execute("""SELECT id 
+        FROM fichiers 
+        WHERE hash_normalise = %s""",
+         (get_hash_normalise(texte),))
+        
+        row = cursor.fetchone()
+        print(f"Temps de récupération du fichier : {time.time() - t} secondes")
+        return row[0] if row is not None else None
 
 async def retrieve_mcp_from_bdd(id_fichier: int, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
     """
@@ -23,6 +52,7 @@ async def retrieve_mcp_from_bdd(id_fichier: int, openai_client: openai.AsyncOpen
             
             texte = _get_text_from_bdd(id_fichier)
             mon_mcp = await ModelContextProtocol.init_from_texte(texte, openai_client, model)
+            mon_mcp.indice_fichier = id_fichier
             return mon_mcp
 
         elif nb_mcp == 1:
@@ -56,15 +86,24 @@ def _get_text_from_bdd(id_fichier: int):
 def _get_mcp_from_bdd(id_mcp: int, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
     with get_db_cursor() as cursor:
 
-        #Récupération du texte
-        cursor.execute("""SELECT fichiers.texte 
-        FROM MCP
-        JOIN fichiers ON MCP.id_fichier = fichiers.id
+
+
+        cursor.execute("""SELECT id_fichier 
+        FROM MCP 
         WHERE MCP.id = %s""",
          (id_mcp,))
+        id_fichier = cursor.fetchone()[0]
+
+        #Récupération du texte
+        cursor.execute("""SELECT fichiers.texte 
+        FROM fichiers
+        WHERE fichiers.id = %s""",
+         (id_fichier,))
         texte = cursor.fetchone()[0]
 
         mon_mcp = ModelContextProtocol(texte, openai_client, model)
+        mon_mcp.indice_fichier = id_fichier
+        mon_mcp.indice_bdd = id_mcp
 
         #A initialiser : 
         mon_mcp.liste_chunk_agents = []
@@ -99,7 +138,7 @@ def _get_mcp_from_bdd(id_mcp: int, openai_client: openai.AsyncOpenAI, model: str
 
         mon_mcp.liste_lieutenant_agents = [] #Liste des lieutenant_agents de niveau 1 (chefs de chunk_agents)
 
-        for (id_lieutenant_agent,) in liste_id_lieutenant_agents:
+        for id_lieutenant_agent in liste_id_lieutenant_agents:
             lieutenant_agent, state_orchestrateur = _get_lieutenant_agent_from_bdd(id_lieutenant_agent, list_of_chunk_agents=mon_mcp.liste_chunk_agents, openai_client=openai_client, model=model)
             if state_orchestrateur in (0,1):
                 #le lieutenant_agent est de niveau 1 (chef de chunk_agents)

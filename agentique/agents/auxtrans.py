@@ -56,8 +56,7 @@ class AuxTransAgent(BaseAgent):
 
         return liste_de_dict
     
-
-
+    
     async def process_message(self, user_message: str) -> str:
 
         liste_de_dict = await self.generate_liste_dict(user_message)

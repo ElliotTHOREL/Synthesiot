@@ -1,5 +1,6 @@
 from app.connection import get_db_cursor
 from agentique.ModelContextProtocol import ModelContextProtocol
+from app.database.read import get_hash_normalise
 
 from datetime import datetime
 import uuid
@@ -8,18 +9,18 @@ import logging
 def add_file_in_bdd(name, texte):
     with get_db_cursor() as cursor:
         cursor.execute("""INSERT INTO fichiers 
-            (name, texte) VALUES (%s, %s)""",
-            (name, texte))
+            (name, texte, hash_normalise) VALUES (%s, %s, %s)""",
+            (name, texte, get_hash_normalise(texte)))
 
 def save_mcp_in_bdd(mon_mcp: ModelContextProtocol):
     #Update fichier
-    if mon_mcp.indice_fichier is None:
+    if mon_mcp.indice_fichier is None:        
         logging.info("Création d'un nouveau fichier")
         with get_db_cursor() as cursor:
             name = f"fichier_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
             cursor.execute("""INSERT INTO fichiers 
-                (name, texte) VALUES (%s, %s)""",
-                (name, mon_mcp.texte))
+                (name, texte, hash_normalise) VALUES (%s, %s, %s)""",
+                (name, mon_mcp.texte, get_hash_normalise(mon_mcp.texte)))
             mon_mcp.indice_fichier = cursor.lastrowid
 
     if mon_mcp.indice_bdd is None:
@@ -41,7 +42,7 @@ def _load_mcp_in_bdd(mon_mcp: ModelContextProtocol):
         for i, chunk_agent in enumerate(mon_mcp.liste_chunk_agents):
             cursor.execute("""INSERT INTO chunk_agents 
                 (id_mcp, position, texte, contexte, summary) VALUES (%s, %s, %s, %s, %s)""",
-                (mon_mcp.indice_bdd, i, chunk_agent.texte, chunk_agent.contexte, chunk_agent.summary))
+                (mon_mcp.indice_bdd, i, chunk_agent.texte_du_chunk, chunk_agent.context, chunk_agent.summary))
             id_chunk_agent = cursor.lastrowid
 
         #Update historique
@@ -80,7 +81,7 @@ def _update_mcp_in_bdd(mon_mcp: ModelContextProtocol):
     
     with get_db_cursor() as cursor:
         for position_chunk_agent, chunk_agent in enumerate(mon_mcp.liste_chunk_agents):
-            cursor.execute("""SELECT id
+            cursor.execute("""SELECT historique.id
                 FROM historique
                 JOIN chunk_agents ON historique.id_chunk_agent = chunk_agents.id
                 WHERE chunk_agents.position = %s and chunk_agents.id_mcp = %s""",
@@ -90,7 +91,7 @@ def _update_mcp_in_bdd(mon_mcp: ModelContextProtocol):
             cursor.execute("""SELECT MAX(numero_message)
             FROM message
             WHERE id_historique = %s""",
-            (id_historique))
+            (id_historique,))
             max_numero_message = cursor.fetchone()[0]
 
             historique = chunk_agent.historic

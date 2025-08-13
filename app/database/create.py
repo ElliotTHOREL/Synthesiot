@@ -6,7 +6,9 @@ def init_bdd():
         CREATE TABLE IF NOT EXISTS fichiers(
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255),
-            texte MEDIUMTEXT
+            texte MEDIUMTEXT,
+            hash_normalise CHAR(64),
+            INDEX idx_hash_normalise (hash_normalise)
         )
         """)
 
@@ -17,7 +19,7 @@ def init_bdd():
             id_fichier INT,
             nb_chunk_agents INT,
             nb_lieutenant_agents INT,
-            FOREIGN KEY (id_fichier) REFERENCES fichiers(id)
+            FOREIGN KEY (id_fichier) REFERENCES fichiers(id) ON DELETE CASCADE
         )
         """)
 
@@ -29,7 +31,7 @@ def init_bdd():
             texte TEXT,
             contexte TEXT,
             summary TEXT,
-            FOREIGN KEY (id_mcp) REFERENCES MCP(id)
+            FOREIGN KEY (id_mcp) REFERENCES MCP(id) ON DELETE CASCADE
         )
         """)
 
@@ -37,7 +39,7 @@ def init_bdd():
         CREATE TABLE IF NOT EXISTS historique(
             id INT AUTO_INCREMENT PRIMARY KEY,
             id_chunk_agent INT,
-            FOREIGN KEY (id_chunk_agent) REFERENCES chunk_agents(id)
+            FOREIGN KEY (id_chunk_agent) REFERENCES chunk_agents(id) ON DELETE CASCADE
         )
         """)
 
@@ -49,7 +51,7 @@ def init_bdd():
             numero_message INT,
             auteur VARCHAR(255),
             content TEXT,
-            FOREIGN KEY (id_historique) REFERENCES historique(id)
+            FOREIGN KEY (id_historique) REFERENCES historique(id) ON DELETE CASCADE
         )
         """)
 
@@ -65,7 +67,7 @@ def init_bdd():
                 state_orchestrateur TINYINT,   
                 summary TEXT,
                 position INT,
-                FOREIGN KEY (id_mcp) REFERENCES MCP(id)
+                FOREIGN KEY (id_mcp) REFERENCES MCP(id) ON DELETE CASCADE
             )
             """
         )

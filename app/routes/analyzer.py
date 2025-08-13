@@ -1,7 +1,7 @@
 from app.services.analyzer import quickly_summarize_file, quickly_summarize_text, ask_file, ask_text
 
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Body
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -25,7 +25,7 @@ class TextRequest(BaseModel):
 # ask_text(texte: str, user_request: str)
 
 @router.post("/quickly_summarize_file")
-async def quickly_summarize_file_endpoint(id_fichier: int):
+async def quickly_summarize_file_endpoint(id_fichier: int = Body(...)):
     return await quickly_summarize_file(id_fichier)
 
 @router.post("/ask_file")
