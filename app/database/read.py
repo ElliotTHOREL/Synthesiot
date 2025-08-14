@@ -8,7 +8,6 @@ from agentique.agents.chunk_agent import ChunkAgent
 import logging
 import openai
 import re
-import time
 import hashlib
 
 def normalize_text(text: str) -> str:
@@ -26,7 +25,6 @@ def get_hash_normalise(texte: str) -> str:
     return hashlib.sha256(normalize_text(texte).encode()).hexdigest()
 
 def get_fichier_from_texte(texte: str):
-    t=time.time()
     with get_db_cursor() as cursor:
         cursor.execute("""SELECT id 
         FROM fichiers 
@@ -34,7 +32,6 @@ def get_fichier_from_texte(texte: str):
          (get_hash_normalise(texte),))
         
         row = cursor.fetchone()
-        print(f"Temps de récupération du fichier : {time.time() - t} secondes")
         return row[0] if row is not None else None
 
 async def retrieve_mcp_from_bdd(id_fichier: int, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
@@ -137,7 +134,6 @@ def _get_mcp_from_bdd(id_mcp: int, openai_client: openai.AsyncOpenAI, model: str
         liste_id_lieutenant_agents = [row[0] for row in cursor.fetchall()]
 
         mon_mcp.liste_lieutenant_agents = [] #Liste des lieutenant_agents de niveau 1 (chefs de chunk_agents)
-
         for id_lieutenant_agent in liste_id_lieutenant_agents:
             lieutenant_agent, state_orchestrateur = _get_lieutenant_agent_from_bdd(id_lieutenant_agent, list_of_chunk_agents=mon_mcp.liste_chunk_agents, openai_client=openai_client, model=model)
             if state_orchestrateur in (0,1):
@@ -151,6 +147,9 @@ def _get_mcp_from_bdd(id_mcp: int, openai_client: openai.AsyncOpenAI, model: str
                 #C'est un orchestrateur (petit ou gros)
                 mon_mcp.orchestrateur_agent = lieutenant_agent
         
+        if len(mon_mcp.liste_lieutenant_agents) == 0: # Cas 1 chunk_agent -> orchestrateur
+            mon_mcp.orchestrateur_agent = mon_mcp.liste_chunk_agents[0]
+
         return mon_mcp
 
 def _get_chunk_agent_from_bdd(id_chunk_agent: int, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):

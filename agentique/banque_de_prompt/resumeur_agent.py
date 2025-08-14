@@ -16,6 +16,7 @@ POINT PARTICULIER :
 Inclue un résumé de la partie du document que tu as analysée en quelques phrases.
 
 CONSIGNES :
+- Structure la réponse en Markdown.
 - Appuie-toi uniquement sur les résumés fournis. Ne cherche pas à extrapoler ou combler les vides.
 - Fusionne et hiérarchise les informations essentielles : faits, idées, décisions, événements, données clés, etc.
 - Garde un ton neutre, informatif et clair. Ne commente pas, n'interprète pas.

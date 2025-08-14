@@ -44,18 +44,18 @@ Format : éléments factuels concis, pas de résumé narratif."""
 
 
 PROMPT_USER_SUMMARY = """
-Résume de manière factuelle, claire et structurée **ta portion de document**.
+Résume de manière factuelle, claire et structurée **ta portion de document** en Markdown.
 
 Objectif : fournir à l’agent orchestrateur un aperçu synthétique des points clés de ta portion, pour faciliter la navigation et la formulation de questions ciblées.
 
-Point particulier :
-Inclue un résumé de la portion du document que tu as analysée en quelques phrases.
+POINT PARTICULIER :
+Inclue un résumé de la partie du document que tu as analysée en quelques phrases.
 
 Consignes :
-- Ne traite que ta portion. Ignore le reste du document.
-- Identifie et synthétise les informations essentielles (exemples : faits, actions, noms, lieux, dates, décisions, arguments, données, thèmes, etc.)
-- N’interprète pas, ne commente pas, ne reformule pas inutilement.
-- Sois aussi concis que possible, sans perdre les éléments importants.
-- Ne cherche pas nécessairement à être exhaustif. Fait remonter uniquement les points qui semblent importants.
+- Ne traite que ta portion, ignore le reste du document.
+- Identifie et synthétise les informations essentielles : faits, actions, noms, lieux, dates, décisions, arguments, données, thèmes, etc.
+- Structure la réponse en Markdown.
+- Sois concis et factuel : pas d’interprétation, pas de commentaire, pas de reformulation inutile.
+- Va à l’essentiel, ne répète pas les informations inutiles.
 """
 

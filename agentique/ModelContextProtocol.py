@@ -1,6 +1,6 @@
 from agentique.agents.chunk_agent import ChunkAgent
 from agentique.agents.lieutenant_agent import LieutenantAgent
-from agentique.agents.SOA_agent import SOA_agent
+from agentique.agents.base_agent import BaseAgent
 
 import openai
 import time
@@ -8,7 +8,7 @@ import logging
 from typing import Optional
 
 
-
+forcer_le_resultat_brut = False
 
 class ModelContextProtocol:
     def __init__(self, texte : str,  openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo", indice_fichier: Optional[int] = None):
@@ -22,12 +22,24 @@ class ModelContextProtocol:
     
     @classmethod
     async def init_from_texte(cls, texte: str, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
+        BaseAgent.call_count = 0
         mcp = cls(texte, openai_client, model)
-        mcp.liste_chunk_agents = await mcp._init_chunk_agents()
-        mcp.liste_lieutenant_agents = mcp._init_lieutenant_agents()
-        mcp.orchestrateur_agent = mcp._get_orchestrateur_agent()
-        await mcp.orchestrateur_agent.async_init()
-        print(mcp.orchestrateur_agent.summary)
+        if  not forcer_le_resultat_brut or len(texte) > 50000 : #Si le texte est trop long, on le découpe en chunks
+            print(len(texte))
+            mcp.liste_chunk_agents = await mcp._init_chunk_agents()
+            mcp.liste_lieutenant_agents = mcp._init_lieutenant_agents()
+            mcp.orchestrateur_agent = mcp._get_orchestrateur_agent()
+            await mcp.orchestrateur_agent.async_init()
+
+        else:
+            chunk_agent = ChunkAgent.init_from_texte(texte, True, texte, openai_client=openai_client, model=model)
+            mcp.liste_chunk_agents = [chunk_agent]
+            mcp.liste_lieutenant_agents = []
+            mcp.orchestrateur_agent = chunk_agent
+            await mcp.orchestrateur_agent.async_init()
+
+        #print(mcp.orchestrateur_agent.summary)
+        print(f"Nombre d'appels à OpenAI pour l'initialisation du MCP : {BaseAgent.call_count}")
         return mcp
 
 
@@ -49,12 +61,14 @@ class ModelContextProtocol:
         list_of_chunk_agents=[]
         is_premier_chunk = True
         context = ""
-        for chunk in chunks:
+        for i,chunk in enumerate(chunks):
             new_chunk_agent = ChunkAgent.init_from_texte(context, is_premier_chunk, chunk, openai_client=self.client, model=self.model)
             list_of_chunk_agents.append(new_chunk_agent)
 
-            is_premier_chunk = False
-            context = await new_chunk_agent.generate_next_context()
+            if i < len(chunks)-1: #Si ce n'est pas le dernier chunk, on génère le contexte suivant
+                is_premier_chunk = False
+                context = await new_chunk_agent.generate_next_context()
+
         time_end = time.time()
         logging.info(f"Temps d'initialisation des agents de chunk : {time_end - time_start} secondes")
         logging.info(f"Nombre de chunks : {len(chunks)}")
@@ -81,6 +95,8 @@ class ModelContextProtocol:
 
 
     async def process_message(self, user_request: str):
+        BaseAgent.call_count = 0
         response = await self.orchestrateur_agent.process_message(user_request)
+        print(f"Nombre d'appels à OpenAI pour générer la réponse : {BaseAgent.call_count}")
         return response
 

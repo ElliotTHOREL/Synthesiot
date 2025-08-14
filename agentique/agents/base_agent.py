@@ -5,6 +5,8 @@ import logging
 
 
 class BaseAgent(ABC):
+    call_count = 0
+
     def __init__(self, openai_client: openai.AsyncOpenAI, model: str = "gpt-3.5-turbo"):
         self.client = openai_client
         self.model = model
@@ -15,6 +17,8 @@ class BaseAgent(ABC):
 
 
     async def call_openai(self, messages):
+        BaseAgent.call_count += 1
+
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=messages,

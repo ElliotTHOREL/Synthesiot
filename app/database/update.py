@@ -12,6 +12,10 @@ def add_file_in_bdd(name, texte):
             (name, texte, hash_normalise) VALUES (%s, %s, %s)""",
             (name, texte, get_hash_normalise(texte)))
 
+def rename_file_in_bdd(id_fichier: int, name: str):
+    with get_db_cursor() as cursor:
+        cursor.execute("""UPDATE fichiers SET name = %s WHERE id = %s""", (name, id_fichier))
+
 def save_mcp_in_bdd(mon_mcp: ModelContextProtocol):
     #Update fichier
     if mon_mcp.indice_fichier is None:        
@@ -65,7 +69,7 @@ def _load_mcp_in_bdd(mon_mcp: ModelContextProtocol):
             cursor.execute("""INSERT INTO lieutenant_agents 
                 (id_mcp, id_first_sub_agent, id_last_sub_agent, state_orchestrateur, summary, position) VALUES (%s, %s, %s, %s, %s, %s)""",
                 (mon_mcp.indice_bdd, lieutenant_agent.id_first_sub_agent, lieutenant_agent.id_last_sub_agent, 1, lieutenant_agent.summary, 0))
-        else:
+        elif len(mon_mcp.liste_lieutenant_agents) > 1:
             for i, lieutenant_agent in enumerate(mon_mcp.liste_lieutenant_agents):
                 cursor.execute("""INSERT INTO lieutenant_agents 
                     (id_mcp, id_first_sub_agent, id_last_sub_agent, state_orchestrateur, summary, position) VALUES (%s, %s, %s, %s, %s, %s)""",

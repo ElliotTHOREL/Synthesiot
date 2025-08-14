@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from typing import Optional
 
-from app.database.update import add_file_in_bdd
+from app.database.update import add_file_in_bdd, rename_file_in_bdd
 from app.database.delete import delete_file_in_bdd, reset_bdd
 from app.services.files import get_files
 
@@ -34,6 +34,11 @@ async def import_file_endpoint(file: UploadFile = File(...), name: Optional[str]
 
     return {"status": "success", "filename": filename}
 
+@router.post("/rename_file/")
+async def rename_file_endpoint(id_file: int, name: str):
+    return rename_file_in_bdd(id_file, name)
+
+
 @router.delete("/delete_file/")
 async def delete_file_endpoint(id_file: int):
     return delete_file_in_bdd(id_file)
@@ -41,3 +46,4 @@ async def delete_file_endpoint(id_file: int):
 @router.delete("/reset_bdd/")
 async def reset_bdd_endpoint():
     return reset_bdd()
+
